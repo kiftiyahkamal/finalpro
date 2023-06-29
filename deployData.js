@@ -10,6 +10,6 @@ const studentName = 'Kiftiyah Kamal Farouq';
 
 const studentId = 'FE5621861';
 
-const NetlifyDeployUrl = 'https://kiftiyahkamalfarouq-finalpro.netlify.app';
+const NetlifyDeployUrl = 'https://kiftiyahfinalpro.netlify.app';
 
 module.exports = { studentName, studentId, NetlifyDeployUrl };
