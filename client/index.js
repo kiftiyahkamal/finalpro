@@ -4,7 +4,7 @@ let books = [];
 
 const main = document.querySelector('main');
 
-const pageListMainContent = `<h2 class="text-2xl font-bold mb-4">Daftar Buku Perpustakaan</h2>
+const pageListMainContent = `<h2 class="text-2xl font-bold mb-4 text-center">Daftar Buku Perpustakaan</h2>
 
 <table class="min-w-full border border-gray-300">
   <thead>
@@ -53,8 +53,8 @@ const pageAddBookMainContent = `<h2 class="text-2xl font-bold mb-4">Tambah Buku<
 
 async function handleClickEditButton(bookId) {
   try {
-    currentBook = await fetch(`http://localhost:3333/books/${bookId}`);
-    currentBook = await currentBook.json();
+    const response = await fetch(`http://localhost:3333/books/${bookId}`);
+    currentBook = await response.json();
 
     currentPage = 'edit';
     loadPage();
@@ -63,6 +63,7 @@ async function handleClickEditButton(bookId) {
     console.log('Terjadi kesalahan saat mengambil data buku');
   }
 }
+
 async function handleClickDeleteButton(bookId) {
   try {
     await deleteBook(bookId);
@@ -77,12 +78,17 @@ async function handleEditForm(event) {
   try {
     event.preventDefault();
 
-    let title = document.getElementById('title').value;
-    let author = document.getElementById('author').value;
-    let year = document.getElementById('year').value;
-    let quantity = document.getElementById('quantity').value;
+    const titleInput = document.getElementById('title');
+    const authorInput = document.getElementById('author');
+    const yearInput = document.getElementById('year');
+    const quantityInput = document.getElementById('quantity');
 
-    let book = {
+    const title = titleInput.value;
+    const author = authorInput.value;
+    const year = yearInput.value;
+    const quantity = quantityInput.value;
+
+    const book = {
       title: title,
       author: author,
       year: year,
@@ -101,16 +107,22 @@ async function handleEditForm(event) {
   }
 }
 
+
 async function handleAddForm(event) {
   try {
     event.preventDefault();
 
-    let title = document.getElementById('title').value;
-    let author = document.getElementById('author').value;
-    let year = document.getElementById('year').value;
-    let quantity = document.getElementById('quantity').value;
+    const titleInput = document.getElementById('title');
+    const authorInput = document.getElementById('author');
+    const yearInput = document.getElementById('year');
+    const quantityInput = document.getElementById('quantity');
 
-    let book = {
+    const title = titleInput.value;
+    const author = authorInput.value;
+    const year = yearInput.value;
+    const quantity = quantityInput.value;
+
+    const book = {
       title: title,
       author: author,
       year: year,
@@ -127,12 +139,13 @@ async function handleAddForm(event) {
   }
 }
 
+
 function handleClickAddNav() {
   currentPage = 'add';
   loadPage();
 }
 
-// add event listener click tag a didalam li dengan function handleClickAddNav
+
 const navLinks = document.querySelectorAll('li a');
 navLinks.forEach((navLink) => {
   navLink.addEventListener('click', handleClickAddNav);
@@ -145,6 +158,7 @@ function generateRows(books) {
    <td colspan="6" class="px-6 py-4 border-b text-center">Tidak ada buku yang ditemukan</td>
 </tr>`;
   } else {
+
     books.forEach(info => {
       rows += `<tr class="book-item">
       <td class="px-6 py-4 border-b">${info.title}</td>
@@ -184,38 +198,34 @@ function generateEditFormInput() {
 }
 
 async function loadPage() {
-  switch (currentPage) {
-    case 'home':
-      await fetchBooks();
+  if (currentPage === 'home') {
+    await fetchBooks();
+    main.innerHTML = pageListMainContent;
 
-      main.innerHTML = pageListMainContent;
+    const tableBody = document.querySelector('tbody');
+    tableBody.innerHTML = generateRows(books);
+  } else if (currentPage === 'edit') {
+    main.innerHTML = pageEditBookMainContent;
 
-      const tableBody = document.querySelector('tbody');
-      tableBody.innerHTML = generateRows(books);
+    const form = document.querySelector('form');
+    let formInput = generateEditFormInput();
 
-      break;
-    case 'edit':
-      main.innerHTML = pageEditBookMainContent;
-
-      const form = document.querySelector('form');
-      let formInput= generateEditFormInput()
-
-      form.innerHTML = formInput;
-      form.addEventListener('submit', (event) => {
-        event.preventDefault();
-        handleEditForm(currentBook.id);
-      });
-      break;
-    case 'add':
-      main.innerHTML = pageAddBookMainContent;
-      break;
+    form.innerHTML = formInput;
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      handleEditForm(event);
+    });
+  } else if (currentPage === 'add') {
+    main.innerHTML = pageAddBookMainContent;
   }
 }
+
 
 async function fetchBooks() {
   try {
     let response = await fetch("http://localhost:3333/books");
-    books = await response.json();
+    let data = await response.json();
+    books = data;
     return books;
   } catch (error) {
     console.log(error);
@@ -227,13 +237,14 @@ async function addBook(book) {
   try {
     let response = await fetch("http://localhost:3333/books", {
       method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(book)
-    })
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(book),
+    });
 
-    books = await response.json();
+    let data = await response.json();
+    books = data;
     return books;
   } catch (error) {
     console.log(error);
@@ -241,15 +252,19 @@ async function addBook(book) {
   }
 }
 
-async function editBook(book) {
+
+async function editBook(bookId, book) {
   try {
     await fetch(`http://localhost:3333/books/${bookId}`, {
-    method: "PUT",
+      method: "PUT",
       headers: {
-          "Content-Type": "application/json",
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(book)
-    })
+      body: JSON.stringify(book),
+    });
+    
+    // Mengupdate daftar buku setelah buku diubah
+    await fetchBooks();
   } catch (error) {
     console.log(error);
     console.log('Terjadi kesalahan saat mengubah buku');
@@ -261,13 +276,17 @@ async function deleteBook(bookId) {
     await fetch(`http://localhost:3333/books/${bookId}`, {
       method: "DELETE",
       headers: {
-          "Content-Type": "application/json",
-      }
+        "Content-Type": "application/json",
+      },
     });
+    
+    // Mengupdate daftar buku setelah buku dihapus
+    await fetchBooks();
   } catch (error) {
     console.log(error);
     console.log('Terjadi kesalahan saat menghapus buku');
   }
 }
+
 
 loadPage();
